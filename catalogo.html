@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Recargas Meliodas - Catálogo</title>
+    <link rel="stylesheet" href="css/estilo.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
+    <style>
+        .admin-badge {
+            background: #d32f2f;
+            color: white;
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-left: 10px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #4a1c4a, #d32f2f);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 2px solid #9b4b9b;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            z-index: 10001;
+            font-weight: bold;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .no-paquetes {
+            text-align: center;
+            color: #d32f2f;
+            padding: 50px;
+            font-size: 18px;
+            background: #1a1a1a;
+            border-radius: 15px;
+            border: 2px dashed #d32f2f;
+        }
+        
+        .badge-multiples {
+            background: #4a1c4a;
+            color: #9b4b9b;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-top: 5px;
+            display: inline-block;
+        }
+        
+        .pin-copy-container {
+            transition: all 0.3s;
+        }
+        
+        .pin-copy-container:hover {
+            background: #2a2a2a !important;
+            border-color: #d32f2f !important;
+            transform: scale(1.02);
+        }
+        
+        .btn-siguiente, .btn-cancelar {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-siguiente {
+            background: linear-gradient(45deg, #d32f2f, #4a1c4a);
+            color: white;
+            flex: 2;
+        }
+        
+        .btn-cancelar {
+            background: #333;
+            color: white;
+            flex: 1;
+        }
+        
+        .btn-siguiente:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(211,47,47,0.5);
+        }
+        
+        .btn-cancelar:hover {
+            background: #444;
+        }
+
+      /* Estilos para la tarjeta de información adicional - VERSIÓN COMPACTA */
+.info-especial-card {
+    background: linear-gradient(135deg, #4a1c4a, #6a2e6a);
+    border-radius: 15px;
+    padding: 15px;
+    margin: 25px 0 15px 0;
+    border: 2px solid #d32f2f;
+    box-shadow: 0 8px 20px rgba(211,47,47,0.3);
+}
+
+.info-especial-titulo {
+    color: #d32f2f;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.info-especial-items {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.info-especial-item {
+    background: #1a1a1a;
+    padding: 12px;
+    border-radius: 12px;
+    min-width: 150px;
+    flex: 1;
+    text-align: center;
+    border: 1px solid #9b4b9b;
+    transition: all 0.3s;
+}
+
+.info-especial-item:hover {
+    transform: translateY(-3px);
+    border-color: #d32f2f;
+    box-shadow: 0 3px 15px rgba(211,47,47,0.3);
+}
+
+.info-especial-item h4 {
+    color: #d32f2f;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.info-especial-item p {
+    color: #9b4b9b;
+    font-size: 12px;
+    margin: 3px 0;
+}
+
+.info-especial-item .diamantes {
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    margin: 5px 0;
+}
+
+.info-especial-contacto {
+    background: #d32f2f;
+    color: white;
+    text-align: center;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: bold;
+    border: 2px solid #9b4b9b;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+}
+
+.info-especial-contacto:hover {
+    background: #b71c1c;
+    transform: scale(1.01);
+    box-shadow: 0 3px 15px rgba(211,47,47,0.5);
+}
+
+.whatsapp-icon {
+    font-size: 20px;
+    vertical-align: middle;
+}
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header con información del usuario -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: rgba(26,26,26,0.9); padding: 20px; border-radius: 15px; border: 1px solid #6a2e6a;">
+            <div>
+                <h2 style="color: #d32f2f; margin-bottom: 5px;">¡BIENVENIDO!</h2>
+                <p id="bienvenidaUsuario" style="color: #9b4b9b; font-size: 18px;"></p>
+                <p id="idJugadorDisplay" style="color: white; font-size: 14px;"></p>
+            </div>
+            <div>
+                <span style="background: #4a1c4a; padding: 8px 15px; border-radius: 20px; color: white; border: 1px solid #d32f2f;">
+                    💎 Free Fire
+                </span>
+                <button onclick="cerrarSesion()" style="background: #d32f2f; color: white; border: none; padding: 8px 20px; border-radius: 20px; margin-left: 15px; cursor: pointer;">
+                    🚪 Salir
+                </button>
+            </div>
+        </div>
+        
+        <!-- Tasa del día -->
+        <div style="background: linear-gradient(135deg, #4a1c4a, #6a2e6a); border-radius: 15px; padding: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                    <h3 style="color: white; margin: 0;">💰 TASA DEL DIA</h3>
+                    <span id="indicadorTasa" style="font-size: 12px; padding: 3px 8px; background: #1a1a1a; border-radius: 12px;">🟢 En vivo</span>
+                </div>
+                <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+                    <p style="color: #d32f2f; font-size: 36px; font-weight: bold; margin: 0;">1$ = <span id="tasaDolar">38.50</span> Bs</p>
+                </div>
+                <p style="color: #9b4b9b; font-size: 11px; margin-top: 5px;">* Tasa actualizada automáticamente</p>
+            </div>
+            <div style="background: #1a1a1a; padding: 12px 20px; border-radius: 10px; text-align: center; min-width: 150px;">
+                <p style="color: #9b4b9b; font-size: 11px; margin-bottom: 3px;">🕒 Última actualización</p>
+                <p style="color: white; font-size: 13px; font-weight: bold;" id="fechaTasa">Cargando...</p>
+            </div>
+        </div>
+        
+        <h2 style="text-align: center; color: #9b4b9b; margin-bottom: 30px; font-size: 28px;">
+            ✨ SELECCIONA TU PAQUETE DE DIAMANTES ✨
+        </h2>
+        
+        <!-- Catálogo de paquetes -->
+        <div class="catalogo" id="catalogoPaquetes">
+            <div class="no-paquetes">
+                <div style="font-size: 40px; margin-bottom: 15px;">⏳</div>
+                <div>Cargando catálogo...</div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN DE INFORMACIÓN ADICIONAL - TARJETAS ESPECIALES -->
+        <div class="info-especial-card">
+            <div class="info-especial-titulo">
+                🎯 PRODUCTOS ESPECIALES 🎯
+            </div>
+            
+            <div class="info-especial-items">
+                <!-- Tarjeta Semanal -->
+                <div class="info-especial-item">
+                    <h4>🎟️ TARJETA SEMANAL</h4>
+                </div>
+
+                <!-- Tarjeta Mensual -->
+                <div class="info-especial-item">
+                    <h4>💳 TARJETA MENSUAL</h4>
+                </div>
+
+                <!-- Pase Booyah -->
+                <div class="info-especial-item">
+                    <h4>🏆 PASE BOOYAH</h4>
+                </div>
+            </div>
+
+<!-- Información de contacto -->
+<a href="https://wa.me/584122399587?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20las%20tarjetas%20especiales%20y%20pase%20Booyah" 
+   target="_blank" 
+   class="info-especial-contacto">
+    <div style="display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 5px;">
+        <span class="whatsapp-icon" style="font-size: 20px;">📱</span>
+        <span style="font-size: 14px;">Más información sobre:</span>
+    </div>
+    <div style="margin-bottom: 8px;">
+        <span class="telefono" style="font-size: 15px;">📞 𝗧𝗮𝗿𝗷𝗲𝘁𝗮 𝗦𝗲𝗺𝗮𝗻𝗮𝗹 • 𝗧𝗮𝗿𝗷𝗲𝘁𝗮 𝗠𝗲𝗻𝘀𝘂𝗮𝗹 • 𝗣𝗔𝗦𝗘 𝗕𝗢𝗢𝗬𝗔𝗛</span>
+    </div>
+    <div style="margin: 8px 0; font-size: 16px; background: #25D366; color: white; padding: 6px 12px; border-radius: 25px; display: inline-block;">
+        👆 CLICK AQUÍ 👆
+    </div>
+    <div style="font-size: 16px;">
+        📲 +58 412-2399587
+    </div>
+</a>
+
+<div style="text-align: center; margin-top: 10px; color: #9b4b9b; font-size: 12px;">
+    ⚡ Precios especiales - Consulta disponibilidad ⚡
+</div>
+    <!-- MODAL DE PAGO (PASO 1) -->
+    <div id="modalPago" class="modal">
+        <div class="modal-content" style="max-width: 400px; width: 92%; padding: 22px; max-height: 85vh; overflow-y: auto;">
+            
+            <style>
+                .modal-content::-webkit-scrollbar {
+                    width: 8px;
+                }
+                .modal-content::-webkit-scrollbar-track {
+                    background: #1a1a1a;
+                    border-radius: 10px;
+                }
+                .modal-content::-webkit-scrollbar-thumb {
+                    background: #6a2e6a;
+                    border-radius: 10px;
+                    border: 2px solid #1a1a1a;
+                }
+                .modal-content::-webkit-scrollbar-thumb:hover {
+                    background: #d32f2f;
+                }
+                
+                .metodo-pago-placeholder {
+                    background: #4a1c4a;
+                    padding: 20px;
+                    border-radius: 10px;
+                    text-align: center;
+                    border: 2px dashed #9b4b9b;
+                    margin: 20px 0;
+                }
+                
+                .metodo-pago-placeholder p {
+                    color: #9b4b9b;
+                    font-size: 16px;
+                    margin: 0;
+                }
+                
+                .metodo-pago-placeholder span {
+                    font-size: 40px;
+                    display: block;
+                    margin-bottom: 10px;
+                }
+                
+                .btn-siguiente, .btn-cancelar {
+                    padding: 12px 25px;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                }
+                
+                .btn-siguiente {
+                    background: linear-gradient(45deg, #d32f2f, #4a1c4a);
+                    color: white;
+                    flex: 2;
+                }
+                
+                .btn-cancelar {
+                    background: #333;
+                    color: white;
+                    flex: 1;
+                }
+                
+                .btn-siguiente:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 5px 15px rgba(211,47,47,0.5);
+                }
+                
+                .btn-cancelar:hover {
+                    background: #444;
+                }
+                
+                .btn-siguiente:disabled {
+                    opacity: 0.5;
+                    pointer-events: none;
+                }
+            </style>
+            
+            <h2 style="color: #d32f2f; margin-bottom: 18px; text-align: center; font-size: 22px;">
+                💳 PASO 1: DATOS DEL PAGO
+            </h2>
+            
+            <div id="infoPaqueteSeleccionado" style="background: #4a1c4a; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+                <!-- Se llena dinámicamente con la información del paquete -->
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <h3 style="color: #9b4b9b; margin-bottom: 12px; font-size: 18px;">📱 TIPO DE PAGO:</h3>
+                <select id="tipoPago" class="form-control" style="width: 100%; padding: 12px; margin-bottom: 15px; background: #333; color: white; border: 1px solid #6a2e6a; border-radius: 8px;" onchange="mostrarInfoPagoSegunTipo()">
+                    <option value="" selected disabled>🔽 Seleccione un método de pago</option>
+                    <option value="Pago Movil">📲 Pago Móvil</option>
+                    <option value="Transferencia">💸 Transferencia</option>
+                </select>
+                
+                <!-- INFORMACIÓN DEL ADMIN SEGÚN TIPO DE PAGO (vacío inicialmente) -->
+                <div id="infoPagoAdmin" style="background: #1a1a1a; padding: 15px; border-radius: 10px; margin: 15px 0; border: 1px solid #d32f2f; min-height: 120px;">
+                    <div id="contenidoInfoPago">
+                        <!-- Placeholder inicial vacío -->
+                        <div class="metodo-pago-placeholder">
+                            <span>💳</span>
+                            <p>Seleccione un método de pago</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="btn-siguiente" id="btnSiguiente" onclick="irPasoVerificacion()" disabled style="opacity: 0.5; cursor: not-allowed;">
+                    ➡️ SIGUIENTE
+                </button>
+                <button class="btn-cancelar" onclick="cerrarModal('modalPago')">
+                    ❌ CANCELAR
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE VERIFICACIÓN (PASO 2) -->
+    <div id="modalVerificacion" class="modal">
+        <div class="modal-content" style="max-width: 400px; padding: 25px;">
+            <h2 style="color: #d32f2f; margin-bottom: 20px; text-align: center; font-size: 22px;">
+                🔐 PASO 2: VERIFICAR PAGO
+            </h2>
+            
+            <div style="background: #4a1c4a; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+                <p style="color: #9b4b9b; margin-bottom: 5px; font-size: 14px;">📋 Número de referencia interno:</p>
+                <p style="color: #d32f2f; font-size: 24px; font-weight: bold; font-family: monospace; letter-spacing: 2px;" id="referenciaGenerada">123456789</p>
+                <p style="color: #9b4b9b; font-size: 12px; margin-top: 5px;">⚠️ Este es tu número de orden, no el de la transferencia</p>
+            </div>
+            
+            <div style="background: #1a1a1a; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #d32f2f;">
+                <p style="color: white; text-align: center; margin-bottom: 10px; font-size: 14px;">
+                    <strong>💰 Ingresa el número de referencia de tu transferencia o pago móvil:</strong>
+                </p>
+                <p style="color: #9b4b9b; font-size: 12px; text-align: center; margin-bottom: 5px;">
+                    (El número que aparece en tu comprobante de pago)
+                </p>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 20px;">
+                <input type="text" id="referenciaCompleta" class="form-control" 
+                       placeholder="Ej: 1234567890" 
+                       style="width: 100%; padding: 15px; background: #333; border: 2px solid #6a2e6a; border-radius: 8px; color: white; font-size: 16px; text-align: center;">
+            </div>
+            
+            <p style="color: #9b4b9b; font-size: 12px; text-align: center; margin-bottom: 20px;">
+            </p>
+            
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-siguiente" onclick="verificarPago()" style="flex: 2;">
+                    🔍 VERIFICAR
+                </button>
+                <button class="btn-cancelar" onclick="cerrarModal('modalVerificacion')" style="flex: 1;">
+                    ❌ CANCELAR
+                </button>
+            </div>
+            
+            <input type="hidden" id="referenciaActual">
+        </div>
+    </div>
+
+    <!-- MODAL DE PIN GENERADO (PASO 3) -->
+    <div id="modalPin" class="modal">
+        <div class="modal-content" style="max-width: 500px; padding: 30px; text-align: center;">
+            <div style="font-size: 50px; margin-bottom: 15px;">🎉✅🎉</div>
+            <h2 style="color: #d32f2f; margin-bottom: 15px; font-size: 24px;">¡PAGO VERIFICADO!</h2>
+            <p style="color: #9b4b9b; margin-bottom: 20px;">Tus pines de recarga están listos:</p>
+            
+            <div id="pinGenerado" style="margin-bottom: 20px;">
+                <!-- Se llena dinámicamente -->
+            </div>
+            
+            <div style="background: #4a1c4a; padding: 15px; border-radius: 10px; margin: 20px 0;">
+                <p style="color: white; font-size: 14px; margin-bottom: 10px;">
+                    🌐 Canjea tus pines en:
+                </p>
+                <p style="color: #d32f2f; font-size: 18px; font-weight: bold;">
+                    https://redeempins.com
+                </p>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="btn-siguiente" onclick="irACanje()" style="flex: 2;">
+                    ➡️ IR A CANJEAR
+                </button>
+                <button class="btn-cancelar" onclick="cerrarModal('modalPin')" style="flex: 1;">
+                    ❌ CERRAR
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE ERROR -->
+    <div id="modalError" class="modal">
+        <div class="modal-content" style="max-width: 350px; padding: 25px; text-align: center;">
+            <div style="font-size: 40px; margin-bottom: 15px;">❌</div>
+            <h2 style="color: #d32f2f; margin-bottom: 15px;">ERROR</h2>
+            <p id="mensajeError" style="color: white; font-size: 16px; margin-bottom: 20px;">
+                Datos incorrectos
+            </p>
+            <button class="btn-siguiente" onclick="cerrarModal('modalError')" style="background: #d32f2f;">
+                INTENTAR DE NUEVO
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL DE ÉXITO -->
+    <div id="modalExito" class="modal">
+        <div class="modal-content" style="max-width: 350px; padding: 25px; text-align: center;">
+            <div style="font-size: 40px; margin-bottom: 15px;">✅</div>
+            <h2 style="color: #d32f2f; margin-bottom: 15px;">¡ÉXITO!</h2>
+            <p id="mensajeExito" style="color: white; font-size: 16px; margin-bottom: 20px;"></p>
+            <button class="btn-siguiente" onclick="cerrarModal('modalExito')" style="background: #d32f2f;">
+                ACEPTAR
+            </button>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script> 
+        // Función para forzar la carga del catálogo
+        function cargarCatalogoManual() {
+            console.log('📦 Cargando catálogo manualmente...');
+            if (typeof cargarCatalogo === 'function') {
+                cargarCatalogo();
+            } else {
+                console.error('❌ Función cargarCatalogo no disponible');
+                const catalogo = document.getElementById('catalogoPaquetes');
+                if (catalogo) {
+                    catalogo.innerHTML = `
+                        <div class="no-paquetes">
+                            <div style="font-size: 40px; margin-bottom: 15px;">❌</div>
+                            <div>Error al cargar el catálogo</div>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        window.onload = function() {
+            console.log('🟢 Iniciando catálogo...');
+            
+            const sesion = localStorage.getItem('sesionActual');
+            if (!sesion) {
+                console.log('🔴 No hay sesión, redirigiendo a index...');
+                window.location.href = './index.html';
+                return;
+            }
+            
+            const usuario = JSON.parse(sesion);
+            console.log('👤 Usuario:', usuario);
+            
+            const bienvenidaEl = document.getElementById('bienvenidaUsuario');
+            const idJugadorEl = document.getElementById('idJugadorDisplay');
+            
+            if (bienvenidaEl) {
+                bienvenidaEl.innerHTML = `✨ ${usuario.nombreReal} ${usuario.apellidoReal}`;
+                if (usuario.esAdmin) {
+                    bienvenidaEl.innerHTML += ` <span class="admin-badge">👑 ADMIN</span>`;
+                }
+            }
+            
+            if (idJugadorEl) {
+                idJugadorEl.innerHTML = `🎮 ID: ${usuario.idJugador}`;
+            }
+            
+            if (typeof actualizarTasaEnInterfaz === 'function') {
+                actualizarTasaEnInterfaz();
+            }
+            
+            // Pequeño retraso para asegurar que todo esté listo
+            setTimeout(() => {
+                cargarCatalogoManual();
+            }, 500);
+        };
+    </script>
+</body>
+</html>

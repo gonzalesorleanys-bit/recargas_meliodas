@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Recargas Meliodas - Admin</title>
+    <link rel="stylesheet" href="css/estilo.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"></script>
+    
+    <style>
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--morado-medio);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .admin-header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .admin-header-right {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-cerrar {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-cerrar:hover {
+            background: #b71c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(211, 47, 47, 0.5);
+        }
+
+        .admin-badge {
+            background: #d32f2f;
+            color: white;
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-left: 10px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        .paquete-especial {
+            border-left: 4px solid #d32f2f;
+            background: linear-gradient(45deg, #4a1c4a, #6a2e6a);
+        }
+        
+        .badge-especial {
+            background: #d32f2f;
+            color: white;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-left: 10px;
+        }
+        
+        .paquete-admin-card {
+            background: #1a1a1a;
+            border: 1px solid #6a2e6a;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s;
+        }
+        
+        .paquete-admin-card:hover {
+            border-color: #d32f2f;
+            box-shadow: 0 0 15px rgba(211,47,47,0.3);
+        }
+        
+        .btn-eliminar {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .btn-eliminar:hover {
+            background: #b71c1c;
+        }
+        
+        .btn-eliminar:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        .grid-precios-diamantes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .campo-editable {
+            background: #333;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .campo-editable label {
+            color: #9b4b9b;
+            font-size: 12px;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .campo-editable input {
+            width: 100%;
+            padding: 8px;
+            background: #1a1a1a;
+            border: 1px solid #6a2e6a;
+            border-radius: 5px;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .campo-editable input:focus {
+            outline: none;
+            border-color: #d32f2f;
+        }
+        
+        .btn-actualizar {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        .btn-actualizar:hover {
+            background: #b71c1c;
+        }
+        
+        .precio-bs-display {
+            background: #4a1c4a;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .precio-bs-display span {
+            color: #d32f2f;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        /* Estilos para notificaciones de MacroDroid */
+        .notificacion-macrodroid {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #4a1c4a, #d32f2f);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #9b4b9b;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 10002;
+            max-width: 350px;
+            animation: slideInRight 0.3s ease;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="admin-panel">
+            <div class="admin-header">
+                <div class="admin-header-left">
+                    <h1 style="color: #d32f2f; font-size: 28px; margin: 0;">⚡ PANEL DE ADMINISTRACIÓN ⚡</h1>
+                    <p id="adminInfo" style="color: #9b4b9b; margin: 0;"></p>
+                </div>
+                <div class="admin-header-right">
+                    <button onclick="cerrarSesion()" class="btn-cerrar">
+                        🚪 CERRAR SESIÓN
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tabs de navegación -->
+            <div class="admin-tabs">
+                <button class="tab-btn active" onclick="cambiarTab('pines')">
+                    🎮 GESTIÓN DE PINES
+                </button>
+                <button class="tab-btn" onclick="cambiarTab('precios')">
+                    💰 GESTIÓN DE PRECIOS Y PAQUETES
+                </button>
+                <button class="tab-btn" onclick="cambiarTab('usuarios')">
+                    👥 USUARIOS REGISTRADOS
+                </button>
+                <button class="tab-btn" onclick="cambiarTab('pagos')">
+                    💰 LISTADO DE PAGOS
+                </button>
+                <button class="tab-btn" onclick="cambiarTab('estadisticas')">
+                    📊 ESTADÍSTICAS
+                </button>
+            </div>
+            
+            <!-- TAB 1: Gestión de Pines -->
+            <div id="tab-pines" class="tab-content active">
+                <h2 style="color: #9b4b9b; margin-bottom: 20px;">🎮 INGRESAR PINES MANUALMENTE</h2>
+                
+                <!-- Stock de pines de 100 -->
+                <div style="background: linear-gradient(135deg, #d32f2f, #4a1c4a); padding: 15px; border-radius: 10px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="color: white; margin: 0;">📦 STOCK BASE PARA PAQUETES ESPECIALES</h3>
+                        <p style="color: black; font-size: 13px; margin-top: 5px;">Pines de 100💎 (usados para paquetes de 200 y 300)</p>
+                    </div>
+                    <div style="background: #1a1a1a; padding: 10px 25px; border-radius: 10px;">
+                        <span style="color: #9b4b9b;">STOCK: </span>
+                        <span id="stock100" style="color: #d32f2f; font-size: 24px; font-weight: bold;">0</span>
+                    </div>
+                </div>
+                
+                <!-- PAQUETES -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 40px;">
+                    
+                    <!-- Paquete 100 -->
+                    <div class="paquete-admin-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="color: #d32f2f;">💎𝟭𝟬𝟬💎</h3>
+                            <span style="background: #4a1c4a; padding: 5px 15px; border-radius: 20px; color: white; border: 1px solid #9b4b9b;">
+                                Stock: <span id="stock100_1">0</span>
+                            </span>
+                        </div>
+                        <textarea id="pinesManual_100" rows="4" 
+                                  style="width: 100%; padding: 10px; background: #1a1a1a; border: 2px solid #6a2e6a; 
+                                         border-radius: 8px; color: #9b4b9b; font-family: monospace; font-size: 13px; margin-bottom: 10px;"
+                                  placeholder="1234-5678-9012-3456-7890-1234-5678-9012&#10;5678-1234-9012-3456-7890-1234-5678-9012"></textarea>
+                        <button class="btn btn-primary" onclick="ingresarPinesManual(100)" 
+                                style="width: 100%; padding: 10px; font-size: 14px; background: linear-gradient(45deg, #d32f2f, #4a1c4a);">
+                            📥 INGRESAR PINES (100💎)
+                        </button>
+                    </div>
+                    
+                    <!-- Paquete 200 -->
+                    <div class="paquete-admin-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div>
+                                <h3 style="color: #d32f2f; display: inline-block; margin-right: 10px;">💎𝟮𝟬𝟬💎</h3>
+                                <span class="badge-especial" style="background: #d32f2f; color: white; font-size: 11px; padding: 3px 8px; border-radius: 12px;">2 PINES</span>
+                            </div>
+                            <span style="background: #4a1c4a; padding: 5px 15px; border-radius: 20px; color: white; border: 1px solid #9b4b9b;">
+                                Stock: <span id="stock200">0</span>
+                            </span>
+                        </div>
+                        <textarea id="pinesManual_200" rows="4" 
+                                  style="width: 100%; padding: 10px; background: #1a1a1a; border: 2px solid #6a2e6a; 
+                                         border-radius: 8px; color: #9b4b9b; font-family: monospace; font-size: 13px; margin-bottom: 10px;"
+                                  placeholder="1234-5678-9012-3456-7890-1234-5678-9012&#10;5678-1234-9012-3456-7890-1234-5678-9012"></textarea>
+                        <button class="btn btn-primary" onclick="ingresarPinesManual(200)" 
+                                style="width: 100%; padding: 10px; font-size: 14px; background: linear-gradient(45deg, #d32f2f, #4a1c4a);">
+                            📥 INGRESAR PINES (200💎)
+                        </button>
+                    </div>
+                    
+                    <!-- Paquete 300 -->
+                    <div class="paquete-admin-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div>
+                                <h3 style="color: #d32f2f; display: inline-block; margin-right: 10px;">💎𝟯𝟬𝟬💎</h3>
+                                <span class="badge-especial" style="background: #d32f2f; color: white; font-size: 11px; padding: 3px 8px; border-radius: 12px;">3 PINES</span>
+                            </div>
+                            <span style="background: #4a1c4a; padding: 5px 15px; border-radius: 20px; color: white; border: 1px solid #9b4b9b;">
+                                Stock: <span id="stock300">0</span>
+                            </span>
+                        </div>
+                        <textarea id="pinesManual_300" rows="4" 
+                                  style="width: 100%; padding: 10px; background: #1a1a1a; border: 2px solid #6a2e6a; 
+                                         border-radius: 8px; color: #9b4b9b; font-family: monospace; font-size: 13px; margin-bottom: 10px;"
+                                  placeholder="1234-5678-9012-3456-7890-1234-5678-9012&#10;5678-1234-9012-3456-7890-1234-5678-9012"></textarea>
+                        <button class="btn btn-primary" onclick="ingresarPinesManual(300)" 
+                                style="width: 100%; padding: 10px; font-size: 14px; background: linear-gradient(45deg, #d32f2f, #4a1c4a);">
+                            📥 INGRESAR PINES (300💎)
+                        </button>
+                    </div>
+                    
+                    <!-- Paquete 572 -->
+                    <div class="paquete-admin-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="color: #d32f2f;">💎𝟱𝟮𝟬+𝟱𝟮💎 (572)</h3>
+                            <span style="background: #4a1c4a; padding: 5px 15px; border-radius: 20px; color: white; border: 1px solid #9b4b9b;">
+                                Stock: <span id="stock572">0</span>
+                            </span>
+                        </div>
+                        <textarea id="pinesManual_572" rows="4" 
+                                  style="width: 100%; padding: 10px; background: #1a1a1a; border: 2px solid #6a2e6a; 
+                                         border-radius: 8px; color: #9b4b9b; font-family: monospace; font-size: 13px; margin-bottom: 10px;"
+                                  placeholder="1234-5678-9012-3456-7890-1234-5678-9012&#10;5678-1234-9012-3456-7890-1234-5678-9012"></textarea>
+                        <button class="btn btn-primary" onclick="ingresarPinesManual(572)" 
+                                style="width: 100%; padding: 10px; font-size: 14px; background: linear-gradient(45deg, #d32f2f, #4a1c4a);">
+                            📥 INGRESAR PINES (572💎)
+                        </button>
+                    </div>
+                    
+                    <!-- Paquete 1155 -->
+                    <div class="paquete-admin-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="color: #d32f2f;">💎𝟭𝟬𝟱𝟬+𝟭𝟬𝟱💎 (1155)</h3>
+                            <span style="background: #4a1c4a; padding: 5px 15px; border-radius: 20px; color: white; border: 1px solid #9b4b9b;">
+                                Stock: <span id="stock1155">0</span>
+                            </span>
+                        </div>
+                        <textarea id="pinesManual_1155" rows="4" 
+                                  style="width: 100%; padding: 10px; background: #1a1a1a; border: 2px solid #6a2e6a; 
+                                         border-radius: 8px; color: #9b4b9b; font-family: monospace; font-size: 13px; margin-bottom: 10px;"
+                                  placeholder="1234-5678-9012-3456-7890-1234-5678-9012&#10;5678-1234-9012-3456-7890-1234-5678-9012"></textarea>
+                        <button class="btn btn-primary" onclick="ingresarPinesManual(1155)" 
+                                style="width: 100%; padding: 10px; font-size: 14px; background: linear-gradient(45deg, #d32f2f, #4a1c4a);">
+                            📥 INGRESAR PINES (1155💎)
+                        </button>
+                    </div>
+                    
+                    <!-- Paquete 2376 -->
+                    <div class="paquete-admin-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="color: #d32f2f;">💎𝟮𝟭𝟲𝟬+𝟮𝟭𝟲💎 (2376)</h3>
+                            <span style="background: #4a1c4a; padding: 5px 15px; border-radius: 20px; color: white; border: 1px solid #9b4b9b;">
+                                Stock: <span id="stock2376">0</span>
+                            </span>
+                        </div>
+                        <textarea id="pinesManual_2376" rows="4" 
+                                  style="width: 100%; padding: 10px; background: #1a1a1a; border: 2px solid #6a2e6a; 
+                                         border-radius: 8px; color: #9b4b9b; font-family: monospace; font-size: 13px; margin-bottom: 10px;"
+                                  placeholder="1234-5678-9012-3456-7890-1234-5678-9012&#10;5678-1234-9012-3456-7890-1234-5678-9012"></textarea>
+                        <button class="btn btn-primary" onclick="ingresarPinesManual(2376)" 
+                                style="width: 100%; padding: 10px; font-size: 14px; background: linear-gradient(45deg, #d32f2f, #4a1c4a);">
+                            📥 INGRESAR PINES (2376💎)
+                        </button>
+                    </div>
+                    
+                    <!-- Paquete 6138 -->
+                    <div class="paquete-admin-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="color: #d32f2f;">💎𝟱𝟱𝟴𝟬+𝟱𝟱𝟴💎 (6138)</h3>
+                            <span style="background: #4a1c4a; padding: 5px 15px; border-radius: 20px; color: white; border: 1px solid #9b4b9b;">
+                                Stock: <span id="stock6138">0</span>
+                            </span>
+                        </div>
+                        <textarea id="pinesManual_6138" rows="4" 
+                                  style="width: 100%; padding: 10px; background: #1a1a1a; border: 2px solid #6a2e6a; 
+                                         border-radius: 8px; color: #9b4b9b; font-family: monospace; font-size: 13px; margin-bottom: 10px;"
+                                  placeholder="1234-5678-9012-3456-7890-1234-5678-9012&#10;5678-1234-9012-3456-7890-1234-5678-9012"></textarea>
+                        <button class="btn btn-primary" onclick="ingresarPinesManual(6138)" 
+                                style="width: 100%; padding: 10px; font-size: 14px; background: linear-gradient(45deg, #d32f2f, #4a1c4a);">
+                            📥 INGRESAR PINES (6138💎)
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Tabla de pines -->
+                <h3 style="color: #9b4b9b; margin: 40px 0 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>📋 LISTA COMPLETA DE PINES</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="eliminarPinesSeleccionados()" 
+                                style="background: #d32f2f; color: white; border: none; padding: 8px 15px; 
+                                       border-radius: 5px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px;">
+                            🗑️ ELIMINAR SELECCIONADOS
+                        </button>
+                        <button onclick="eliminarTodosPinesDisponibles()" 
+                                style="background: #333; color: white; border: 1px solid #d32f2f; padding: 8px 15px; 
+                                       border-radius: 5px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px;">
+                            ⚠️ ELIMINAR TODOS DISPONIBLES
+                        </button>
+                    </div>
+                </h3>
+                
+                <div style="overflow-x: auto; background: #1a1a1a; border-radius: 15px; padding: 5px;">
+                    <table class="table" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="width: 30px; text-align: center;">
+                                    <input type="checkbox" id="selectAllPines" onclick="seleccionarTodos()">
+                                </th>
+                                <th>CÓDIGO PIN</th>
+                                <th>PAQUETE</th>
+                                <th>ESTADO</th>
+                                <th>FECHA INGRESO</th>
+                                <th>ACCIÓN</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaPines">
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: #9b4b9b; padding: 30px;">
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                                        <span style="font-size: 40px;">📭</span>
+                                        <span>Cargando pines...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 10px; background: #333; border-radius: 8px;">
+                    <div>
+                        <span style="color: #9b4b9b;">📊 TOTAL PINES: </span>
+                        <span id="totalPinesCount" style="color: white; font-weight: bold;">0</span>
+                    </div>
+                    <div>
+                        <span style="color: #4caf50;">✅ DISPONIBLES: </span>
+                        <span id="disponiblesCount" style="color: white; font-weight: bold;">0</span>
+                    </div>
+                    <div>
+                        <span style="color: #d32f2f;">❌ USADOS: </span>
+                        <span id="usadosCount" style="color: white; font-weight: bold;">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TAB 2: GESTIÓN DE PRECIOS Y PAQUETES -->
+            <div id="tab-precios" class="tab-content">
+                <h2 style="color: #9b4b9b; margin-bottom: 20px;">💰 GESTIÓN DE PRECIOS Y PAQUETES</h2>
+                
+                <div style="background: #4a1c4a; padding: 20px; border-radius: 15px; margin-bottom: 25px;">
+                    <h3 style="color: white; margin-bottom: 15px;">💵 TASA DEL DÓLAR</h3>
+                    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                        <div style="flex: 1;">
+                            <label style="color: #9b4b9b; display: block; margin-bottom: 5px;">Tasa actual (Bs/$):</label>
+                            <input type="number" id="tasaManualInput" class="form-control" 
+                                   style="width: 200px;">
+                        </div>
+                        <button onclick="actualizarTasaAdmin()" class="btn btn-primary" 
+                                style="width: auto; padding: 12px 25px;">
+                            💰 ACTUALIZAR TASA
+                        </button>
+                    </div>
+                </div>
+                
+                <h3 style="color: #9b4b9b; margin: 30px 0 20px;">💎 CONFIGURACIÓN DE PAQUETES</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
+                    
+                    <!-- Paquete 0: 100 Diamantes -->
+                    <div class="paquete-admin-card paquete-especial" id="paquete_0">
+                        <h4 style="color: #d32f2f; margin-bottom: 15px; text-align: center;">PAQUETE 1</h4>
+                        <div class="grid-precios-diamantes">
+                            <div class="campo-editable">
+                                <label>💎 Diamantes:</label>
+                                <input type="number" id="diamantesInput_0" value="100" min="1" max="10000" step="1">
+                                <button class="btn-actualizar" onclick="actualizarDiamantesPaquete(0, document.getElementById('diamantesInput_0').value)">
+                                    Actualizar Diamantes
+                                </button>
+                            </div>
+                            <div class="campo-editable">
+                                <label>💵 Precio USD:</label>
+                                <input type="number" id="precioUSD_0" value="5" min="0" step="0.01">
+                                <button class="btn-actualizar" onclick="actualizarPrecioPaquete(0, document.getElementById('precioUSD_0').value)">
+                                    Actualizar Precio
+                                </button>
+                            </div>
+                        </div>
+                        <div class="precio-bs-display">
+                            Precio en Bs: <span id="precioBs_100">192.50</span> Bs
+                        </div>
+                        <div style="margin-top: 10px; text-align: center; color: #9b4b9b;">
+                            Stock: <span id="stock100_2">0</span> pines
+                        </div>
+                    </div>
+                    
+                    <!-- Paquete 1: 200 Diamantes -->
+                    <div class="paquete-admin-card paquete-especial" id="paquete_1">
+                        <h4 style="color: #d32f2f; margin-bottom: 15px; text-align: center;">PAQUETE 2</h4>
+                        <div class="grid-precios-diamantes">
+                            <div class="campo-editable">
+                                <label>💎 Diamantes:</label>
+                                <input type="number" id="diamantesInput_1" value="200" min="1" max="10000" step="1">
+                                <button class="btn-actualizar" onclick="actualizarDiamantesPaquete(1, document.getElementById('diamantesInput_1').value)">
+                                    Actualizar Diamantes
+                                </button>
+                            </div>
+                            <div class="campo-editable">
+                                <label>💵 Precio USD:</label>
+                                <input type="number" id="precioUSD_1" value="10" min="0" step="0.01">
+                                <button class="btn-actualizar" onclick="actualizarPrecioPaquete(1, document.getElementById('precioUSD_1').value)">
+                                    Actualizar Precio
+                                </button>
+                            </div>
+                        </div>
+                        <div class="precio-bs-display">
+                            Precio en Bs: <span id="precioBs_200">385.00</span> Bs
+                        </div>
+                        <div style="margin-top: 10px; text-align: center; color: #9b4b9b;">
+                            Stock: <span id="stock200">0</span> pines
+                        </div>
+                    </div>
+                    
+                    <!-- Paquete 2: 300 Diamantes -->
+                    <div class="paquete-admin-card paquete-especial" id="paquete_2">
+                        <h4 style="color: #d32f2f; margin-bottom: 15px; text-align: center;">PAQUETE 3</h4>
+                        <div class="grid-precios-diamantes">
+                            <div class="campo-editable">
+                                <label>💎 Diamantes:</label>
+                                <input type="number" id="diamantesInput_2" value="300" min="1" max="10000" step="1">
+                                <button class="btn-actualizar" onclick="actualizarDiamantesPaquete(2, document.getElementById('diamantesInput_2').value)">
+                                    Actualizar Diamantes
+                                </button>
+                            </div>
+                            <div class="campo-editable">
+                                <label>💵 Precio USD:</label>
+                                <input type="number" id="precioUSD_2" value="15" min="0" step="0.01">
+                                <button class="btn-actualizar" onclick="actualizarPrecioPaquete(2, document.getElementById('precioUSD_2').value)">
+                                    Actualizar Precio
+                                </button>
+                            </div>
+                        </div>
+                        <div class="precio-bs-display">
+                            Precio en Bs: <span id="precioBs_300">577.50</span> Bs
+                        </div>
+                        <div style="margin-top: 10px; text-align: center; color: #9b4b9b;">
+                            Stock: <span id="stock300">0</span> pines
+                        </div>
+                    </div>
+                    
+                    <!-- Paquete 3: 572 Diamantes -->
+                    <div class="paquete-admin-card" id="paquete_3">
+                        <h4 style="color: #d32f2f; margin-bottom: 15px; text-align: center;">PAQUETE 4</h4>
+                        <div class="grid-precios-diamantes">
+                            <div class="campo-editable">
+                                <label>💎 Diamantes:</label>
+                                <input type="number" id="diamantesInput_3" value="572" min="1" max="10000" step="1">
+                                <button class="btn-actualizar" onclick="actualizarDiamantesPaquete(3, document.getElementById('diamantesInput_3').value)">
+                                    Actualizar Diamantes
+                                </button>
+                            </div>
+                            <div class="campo-editable">
+                                <label>💵 Precio USD:</label>
+                                <input type="number" id="precioUSD_3" value="25" min="0" step="0.01">
+                                <button class="btn-actualizar" onclick="actualizarPrecioPaquete(3, document.getElementById('precioUSD_3').value)">
+                                    Actualizar Precio
+                                </button>
+                            </div>
+                        </div>
+                        <div class="precio-bs-display">
+                            Precio en Bs: <span id="precioBs_572">962.50</span> Bs
+                        </div>
+                        <div style="margin-top: 10px; text-align: center; color: #9b4b9b;">
+                            Stock: <span id="stock572">0</span> pines
+                        </div>
+                    </div>
+                    
+                    <!-- Paquete 4: 1155 Diamantes -->
+                    <div class="paquete-admin-card" id="paquete_4">
+                        <h4 style="color: #d32f2f; margin-bottom: 15px; text-align: center;">PAQUETE 5</h4>
+                        <div class="grid-precios-diamantes">
+                            <div class="campo-editable">
+                                <label>💎 Diamantes:</label>
+                                <input type="number" id="diamantesInput_4" value="1155" min="1" max="10000" step="1">
+                                <button class="btn-actualizar" onclick="actualizarDiamantesPaquete(4, document.getElementById('diamantesInput_4').value)">
+                                    Actualizar Diamantes
+                                </button>
+                            </div>
+                            <div class="campo-editable">
+                                <label>💵 Precio USD:</label>
+                                <input type="number" id="precioUSD_4" value="45" min="0" step="0.01">
+                                <button class="btn-actualizar" onclick="actualizarPrecioPaquete(4, document.getElementById('precioUSD_4').value)">
+                                    Actualizar Precio
+                                </button>
+                            </div>
+                        </div>
+                        <div class="precio-bs-display">
+                            Precio en Bs: <span id="precioBs_1155">1732.50</span> Bs
+                        </div>
+                        <div style="margin-top: 10px; text-align: center; color: #9b4b9b;">
+                            Stock: <span id="stock1155">0</span> pines
+                        </div>
+                    </div>
+                    
+                    <!-- Paquete 5: 2376 Diamantes -->
+                    <div class="paquete-admin-card" id="paquete_5">
+                        <h4 style="color: #d32f2f; margin-bottom: 15px; text-align: center;">PAQUETE 6</h4>
+                        <div class="grid-precios-diamantes">
+                            <div class="campo-editable">
+                                <label>💎 Diamantes:</label>
+                                <input type="number" id="diamantesInput_5" value="2376" min="1" max="10000" step="1">
+                                <button class="btn-actualizar" onclick="actualizarDiamantesPaquete(5, document.getElementById('diamantesInput_5').value)">
+                                    Actualizar Diamantes
+                                </button>
+                            </div>
+                            <div class="campo-editable">
+                                <label>💵 Precio USD:</label>
+                                <input type="number" id="precioUSD_5" value="85" min="0" step="0.01">
+                                <button class="btn-actualizar" onclick="actualizarPrecioPaquete(5, document.getElementById('precioUSD_5').value)">
+                                    Actualizar Precio
+                                </button>
+                            </div>
+                        </div>
+                        <div class="precio-bs-display">
+                            Precio en Bs: <span id="precioBs_2376">3272.50</span> Bs
+                        </div>
+                        <div style="margin-top: 10px; text-align: center; color: #9b4b9b;">
+                            Stock: <span id="stock2376">0</span> pines
+                        </div>
+                    </div>
+                    
+                    <!-- Paquete 6: 6138 Diamantes -->
+                    <div class="paquete-admin-card" id="paquete_6">
+                        <h4 style="color: #d32f2f; margin-bottom: 15px; text-align: center;">PAQUETE 7</h4>
+                        <div class="grid-precios-diamantes">
+                            <div class="campo-editable">
+                                <label>💎 Diamantes:</label>
+                                <input type="number" id="diamantesInput_6" value="6138" min="1" max="10000" step="1">
+                                <button class="btn-actualizar" onclick="actualizarDiamantesPaquete(6, document.getElementById('diamantesInput_6').value)">
+                                    Actualizar Diamantes
+                                </button>
+                            </div>
+                            <div class="campo-editable">
+                                <label>💵 Precio USD:</label>
+                                <input type="number" id="precioUSD_6" value="200" min="0" step="0.01">
+                                <button class="btn-actualizar" onclick="actualizarPrecioPaquete(6, document.getElementById('precioUSD_6').value)">
+                                    Actualizar Precio
+                                </button>
+                            </div>
+                        </div>
+                        <div class="precio-bs-display">
+                            Precio en Bs: <span id="precioBs_6138">7700.00</span> Bs
+                        </div>
+                        <div style="margin-top: 10px; text-align: center; color: #9b4b9b;">
+                            Stock: <span id="stock6138">0</span> pines
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Usuarios Registrados -->
+            <div id="tab-usuarios" class="tab-content">
+                <h2 style="color: #9b4b9b; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>👥 USUARIOS REGISTRADOS</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="eliminarUsuariosSeleccionados()" 
+                                style="background: #d32f2f; color: white; border: none; padding: 8px 15px; 
+                                       border-radius: 5px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px;">
+                            🗑️ ELIMINAR SELECCIONADOS
+                        </button>
+                        <button onclick="eliminarTodosUsuarios()" 
+                                style="background: #333; color: white; border: 1px solid #d32f2f; padding: 8px 15px; 
+                                       border-radius: 5px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px;">
+                            ⚠️ ELIMINAR TODOS (NO ADMIN)
+                        </button>
+                    </div>
+                </h2>
+                
+                <div style="background: #4a1c4a; padding: 10px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #d32f2f;">
+                    <p style="color: white; font-size: 13px;">
+                        <strong>⚠️ NOTA:</strong> La cuenta del administrador principal no puede ser eliminada.
+                        Solo puedes eliminar usuarios normales.
+                    </p>
+                </div>
+                
+                <div style="overflow-x: auto; background: #1a1a1a; border-radius: 15px; padding: 5px;">
+                    <table class="table" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="width: 30px; text-align: center;">
+                                    <input type="checkbox" id="selectAllUsuarios" onclick="seleccionarTodosUsuarios()">
+                                </th>
+                                <th>NOMBRE</th>
+                                <th>APELLIDO</th>
+                                <th>ID JUGADOR</th>
+                                <th>FECHA REGISTRO</th>
+                                <th>TIPO</th>
+                                <th>ACCIÓN</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaUsuarios">
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: #9b4b9b; padding: 30px;">
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                                        <span style="font-size: 40px;">👥</span>
+                                        <span>Cargando usuarios...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 10px; background: #333; border-radius: 8px;">
+                    <div>
+                        <span style="color: #9b4b9b;">📊 TOTAL USUARIOS: </span>
+                        <span id="totalUsuariosCount" style="color: white; font-weight: bold;">0</span>
+                    </div>
+                    <div>
+                        <span style="color: #d32f2f;">👑 ADMIN: </span>
+                        <span id="adminCount" style="color: white; font-weight: bold;">1</span>
+                    </div>
+                    <div>
+                        <span style="color: #4caf50;">👤 USUARIOS: </span>
+                        <span id="usuariosNormalesCount" style="color: white; font-weight: bold;">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TAB 4: Listado de Pagos -->
+            <div id="tab-pagos" class="tab-content">
+                <h2 style="color: #9b4b9b; margin-bottom: 30px;">💰 HISTORIAL DE PAGOS</h2>
+                <div style="overflow-x: auto;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>USUARIO</th>
+                                <th>ID JUGADOR</th>
+                                <th>REFERENCIA</th>
+                                <th>MONTO BS</th>
+                                <th>DIAMANTES</th>
+                                <th>BANCO</th>
+                                <th>FECHA</th>
+                                <th>ESTADO</th>
+                                <th>PIN</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaPagos">
+                            <tr>
+                                <td colspan="9" style="text-align: center; color: #9b4b9b;">Cargando pagos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- TAB 5: Estadísticas -->
+            <div id="tab-estadisticas" class="tab-content">
+                <h2 style="color: #9b4b9b; margin-bottom: 30px;">📊 ESTADÍSTICAS DEL SISTEMA</h2>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px;">
+                    <div style="background: linear-gradient(135deg, #4a1c4a, #6a2e6a); padding: 25px; border-radius: 15px; text-align: center;">
+                        <div style="font-size: 40px; margin-bottom: 15px;">👥</div>
+                        <h3 style="color: white; margin-bottom: 10px;">Total Usuarios</h3>
+                        <p style="font-size: 48px; color: #d32f2f; font-weight: bold;" id="totalUsuarios">0</p>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, #4a1c4a, #6a2e6a); padding: 25px; border-radius: 15px; text-align: center;">
+                        <div style="font-size: 40px; margin-bottom: 15px;">🎮</div>
+                        <h3 style="color: white; margin-bottom: 10px;">Total Pines</h3>
+                        <p style="font-size: 48px; color: #d32f2f; font-weight: bold;" id="totalPines">0</p>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, #4a1c4a, #6a2e6a); padding: 25px; border-radius: 15px; text-align: center;">
+                        <div style="font-size: 40px; margin-bottom: 15px;">💰</div>
+                        <h3 style="color: white; margin-bottom: 10px;">Ventas Totales</h3>
+                        <p style="font-size: 36px; color: #d32f2f; font-weight: bold;" id="totalVentas">0 Bs</p>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, #4a1c4a, #6a2e6a); padding: 25px; border-radius: 15px; text-align: center;">
+                        <div style="font-size: 40px; margin-bottom: 15px;">💎</div>
+                        <h3 style="color: white; margin-bottom: 10px;">Diamantes Vendidos</h3>
+                        <p style="font-size: 36px; color: #d32f2f; font-weight: bold;" id="totalDiamantes">0</p>
+                    </div>
+                </div>
+                
+                <div style="background: #1a1a1a; padding: 25px; border-radius: 15px; margin-top: 30px;">
+                    <h3 style="color: #9b4b9b; margin-bottom: 20px;">📦 STOCK ACTUAL POR PAQUETE</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;" id="stockPaquetes">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE PAGO -->
+    <div id="modalPago" class="modal">
+        <div class="modal-content" style="max-width: 400px; width: 92%; padding: 22px; max-height: 85vh; overflow-y: auto;">
+            <h2 style="color: #d32f2f; margin-bottom: 18px; text-align: center; font-size: 22px;">
+                💳 DETALLES DEL PAGO
+            </h2>
+            
+            <div id="infoPaqueteSeleccionado" style="background: #4a1c4a; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+                <!-- Se llena dinámicamente -->
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <h3 style="color: #9b4b9b; margin-bottom: 12px; font-size: 18px;">📱 TIPO DE PAGO:</h3>
+                <select id="tipoPago" class="form-control" style="width: 100%; padding: 12px; margin-bottom: 15px; background: #333; color: white; border: 1px solid #6a2e6a; border-radius: 8px;" onchange="mostrarInfoPagoSegunTipo()">
+                    <option value="Pago Movil">📲 Pago Móvil</option>
+                    <option value="Transferencia">💸 Transferencia</option>
+                </select>
+                
+                <div id="infoPagoAdmin" style="background: #1a1a1a; padding: 15px; border-radius: 10px; margin: 15px 0; border: 1px solid #d32f2f;">
+                    <div id="contenidoInfoPago">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: #9b4b9b; font-size: 14px;">📞 Teléfono de origen:</label>
+                    <input type="text" id="telefonoOrigen" class="form-control" placeholder="0412-1234567" style="width: 100%; padding: 12px; background: #333; border: 1px solid #6a2e6a; border-radius: 8px; color: white;">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; color: #9b4b9b; font-size: 14px;">🆔 Cédula de origen:</label>
+                    <input type="text" id="cedulaOrigen" class="form-control" placeholder="V-12345678" style="width: 100%; padding: 12px; background: #333; border: 1px solid #6a2e6a; border-radius: 8px; color: white;">
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="btn btn-primary" onclick="irPasoVerificacion()" style="flex: 2; background: linear-gradient(45deg, #d32f2f, #4a1c4a); padding: 12px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; font-size: 14px;">
+                    ✅ CONFIRMAR
+                </button>
+                <button class="btn" onclick="cerrarModal('modalPago')" style="flex: 1; background: #333; padding: 12px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; font-size: 14px;">
+                    ❌ CANCELAR
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE VERIFICACIÓN -->
+    <div id="modalVerificacion" class="modal">
+        <div class="modal-content" style="max-width: 380px; padding: 25px;">
+            <h2 style="color: #d32f2f; margin-bottom: 20px; text-align: center; font-size: 20px;">
+                🔐 VERIFICAR PAGO
+            </h2>
+            
+            <div style="background: #4a1c4a; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="color: white; text-align: center; font-size: 14px;">
+                    Tu número de referencia es: <br>
+                    <strong id="referenciaGenerada" style="color: #d32f2f; font-size: 16px;">REF123456789</strong>
+                </p>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="color: #9b4b9b; font-size: 14px;">🔢 Número de referencia:</label>
+                <input type="text" id="referenciaCompleta" class="form-control" placeholder="Ej: 1234567890" style="padding: 12px;">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="color: #9b4b9b; font-size: 14px;">🔢 Últimos 4 dígitos:</label>
+                <input type="text" id="ultimos4Digitos" class="form-control" placeholder="1234" maxlength="4" style="padding: 12px;">
+            </div>
+            
+            <button class="btn btn-primary" onclick="verificarPago()" style="padding: 12px; font-size: 15px;">
+                🔍 VERIFICAR
+            </button>
+            
+            <input type="hidden" id="referenciaActual">
+        </div>
+    </div>
+
+    <!-- MODAL DE PIN GENERADO -->
+    <div id="modalPin" class="modal">
+        <div class="modal-content" style="max-width: 450px; padding: 30px; text-align: center;">
+            <div style="font-size: 40px; margin-bottom: 15px;">🎉✅🎉</div>
+            <h2 style="color: #d32f2f; margin-bottom: 15px; font-size: 22px;">¡PAGO VERIFICADO!</h2>
+            
+            <div style="background: linear-gradient(45deg, #4a1c4a, #6a2e6a); padding: 20px; border-radius: 12px; margin: 15px 0;">
+                <p style="color: #9b4b9b; margin-bottom: 10px;">TU PIN DE RECARGA ES:</p>
+                <div id="pinGenerado" style="background: #1a1a1a; padding: 15px; border-radius: 8px; font-size: 24px; font-family: monospace; color: #d32f2f; border: 2px dashed #d32f2f; letter-spacing: 4px; word-break: break-all;">
+                    XXXX-XXXX-XXXX-XXXX
+                </div>
+                <p style="color: white; margin-top: 15px; font-size: 13px;">
+                    🌐 Canjea en: <strong>https://redeempins.com</strong>
+                </p>
+            </div>
+            
+            <button class="btn btn-primary" onclick="cerrarModal('modalPin');" style="background: #d32f2f; padding: 12px;">
+                🎮 ACEPTAR
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL DE ERROR -->
+    <div id="modalError" class="modal">
+        <div class="modal-content" style="max-width: 350px; padding: 25px; text-align: center;">
+            <div style="font-size: 40px; margin-bottom: 15px;">❌</div>
+            <h2 style="color: #d32f2f; margin-bottom: 15px;">ERROR</h2>
+            <p id="mensajeError" style="color: white; font-size: 16px; margin-bottom: 20px;">
+                Datos incorrectos
+            </p>
+            <button class="btn btn-primary" onclick="cerrarModal('modalError')" style="background: #d32f2f; padding: 12px;">
+                INTENTAR DE NUEVO
+            </button>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        // DATOS DEL ADMIN PARA PAGOS
+        const DATOS_ADMIN = {
+            nombreCompleto: 'Luwil Witar',
+            cedula: 'V-32528448',
+            
+            transferencia: {
+                numeroCuenta: '0191-0085-50-2185172048',
+                titular: 'Luwil Witar',
+                banco: 'BNC'
+            },
+            
+            pagoMovil: {
+                telefono: '04129660868',
+                cedula: 'V-32528448',
+                banco: 'BNC',
+                bancoCodigo: '0191',
+                titular: 'Luwil Witar'
+            }
+        };
+
+        function mostrarInfoPagoSegunTipo() {
+            const tipoPago = document.getElementById('tipoPago')?.value;
+            if (!tipoPago) return;
+            
+            if (tipoPago === 'Transferencia') {
+                mostrarInfoTransferencia();
+            } else {
+                mostrarInfoPagoMovil();
+            }
+        }
+
+        function mostrarInfoTransferencia() {
+            const datos = DATOS_ADMIN.transferencia;
+            
+            const contenido = document.getElementById('contenidoInfoPago');
+            if (!contenido) return;
+            
+            contenido.innerHTML = `
+                <p style="color: #9b4b9b; margin-bottom: 8px; font-weight: bold; font-size: 13px; text-align: center;">
+                    📋 DATOS PARA TRANSFERENCIA
+                </p>
+                <div style="border-top: 1px solid #333; margin: 8px 0; padding: 8px 0;">
+                    <p style="color: white; font-size: 13px; margin-bottom: 5px;">
+                        <span style="color: #9b4b9b;">🏦 Banco destino:</span> ${datos.banco}
+                    </p>
+                    <p style="color: white; font-size: 13px; margin-bottom: 5px;">
+                        <span style="color: #9b4b9b;">👤 Titular:</span> ${datos.titular}
+                    </p>
+                    <p style="color: white; font-size: 13px; margin-bottom: 5px;">
+                        <span style="color: #9b4b9b;">📋 N° Cuenta:</span> 
+                        <span style="color: #d32f2f; font-weight: bold; font-family: monospace;">${datos.numeroCuenta}</span>
+                    </p>
+                    <p style="color: white; font-size: 12px; margin-top: 8px; background: #333; padding: 5px; border-radius: 5px;">
+                        ⚠️ Transferir exactamente el monto mostrado
+                    </p>
+                </div>
+            `;
+        }
+
+        function mostrarInfoPagoMovil() {
+            const datos = DATOS_ADMIN.pagoMovil;
+            
+            const contenido = document.getElementById('contenidoInfoPago');
+            if (!contenido) return;
+            
+            contenido.innerHTML = `
+                <p style="color: #9b4b9b; margin-bottom: 8px; font-weight: bold; font-size: 13px; text-align: center;">
+                    📱 DATOS PARA PAGO MÓVIL
+                </p>
+                <div style="border-top: 1px solid #333; margin: 8px 0; padding: 8px 0;">
+                    <p style="color: white; font-size: 13px; margin-bottom: 5px;">
+                        <span style="color: #9b4b9b;">🏦 Banco destino:</span> ${datos.banco}
+                    </p>
+                    <p style="color: white; font-size: 13px; margin-bottom: 5px;">
+                        <span style="color: #9b4b9b;">👤 Titular:</span> ${datos.titular}
+                    </p>
+                    <p style="color: white; font-size: 13px; margin-bottom: 5px;">
+                        <span style="color: #9b4b9b;">📞 Teléfono:</span> 
+                        <span style="color: #d32f2f; font-weight: bold;">${datos.telefono}</span>
+                    </p>
+                    <p style="color: white; font-size: 13px; margin-bottom: 5px;">
+                        <span style="color: #9b4b9b;">🆔 Cédula:</span> ${datos.cedula}
+                    </p>
+                    <p style="color: white; font-size: 13px; margin-bottom: 5px;">
+                        <span style="color: #9b4b9b;">🔢 Código banco:</span> ${datos.bancoCodigo}
+                    </p>
+                    <p style="color: white; font-size: 12px; margin-top: 8px; background: #333; padding: 5px; border-radius: 5px;">
+                        ⚠️ Enviar pago móvil al número mostrado
+                    </p>
+                </div>
+            `;
+        }
+
+        // Verificar sesión de admin
+        window.onload = function() {
+            const sesion = localStorage.getItem('sesionActual');
+            if (!sesion) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            const usuario = JSON.parse(sesion);
+            if (!usuario.esAdmin) {
+                window.location.href = 'catalogo.html';
+                return;
+            }
+            
+            document.getElementById('adminInfo').innerHTML = `👑 Administrador: ${usuario.nombreReal} ${usuario.apellidoReal}`;
+            
+            // Cargar todos los datos
+            if (typeof cargarStockPines === 'function') cargarStockPines();
+            if (typeof cargarTablaUsuarios === 'function') cargarTablaUsuarios();
+            if (typeof cargarTablaPagos === 'function') cargarTablaPagos();
+            if (typeof cargarTablaPines === 'function') cargarTablaPines();
+            if (typeof cargarEstadisticas === 'function') cargarEstadisticas();
+            
+            if (typeof actualizarPreciosBsEnAdmin === 'function') {
+                actualizarPreciosBsEnAdmin();
+            }
+            
+            const tasaInput = document.getElementById('tasaManualInput');
+            if (tasaInput) {
+                tasaInput.value = CONFIG.TASA_DOLAR;
+            }
+            
+            // Cargar valores actuales de diamantes en los inputs
+            for (let i = 0; i < CONFIG.PAQUETES.length; i++) {
+                const diamantesInput = document.getElementById(`diamantesInput_${i}`);
+                if (diamantesInput) {
+                    diamantesInput.value = CONFIG.PAQUETES[i].diamantes;
+                }
+                const precioInput = document.getElementById(`precioUSD_${i}`);
+                if (precioInput) {
+                    precioInput.value = CONFIG.PAQUETES[i].precioUSD;
+                }
+            }
+        };
+    </script>
+</body>
+</html>

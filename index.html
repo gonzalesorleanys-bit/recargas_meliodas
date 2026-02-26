@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Recargas Meliodas - Inicio</title>
+    <link rel="stylesheet" href="css/estilo.css">
+    <style>
+        .validation-error {
+            color: #d32f2f;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .validation-error.show {
+            display: block;
+        }
+        
+        .input-error {
+            border-color: #d32f2f !important;
+            box-shadow: 0 0 10px rgba(211,47,47,0.3) !important;
+        }
+        
+        .input-valid {
+            border-color: #4caf50 !important;
+        }
+        
+        .logo-container {
+            display: inline-block;
+        }
+        
+        .logo-container img {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+        
+        .admin-note {
+            color: #9b4b9b;
+            font-size: 12px;
+            margin-top: 5px;
+            padding: 8px;
+            background: rgba(155, 75, 155, 0.1);
+            border-radius: 5px;
+            border-left: 3px solid #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="logo-container">
+                    <img src="img/logo.png" alt="Recargas Meliodas">
+                </div>
+                <h1 style="color: #d32f2f; text-shadow: 0 0 10px rgba(211,47,47,0.5);">⚡RECARGAS MELIODAS⚡</h1>
+                <p style="color: #9b4b9b; font-size: 18px;">💎Tienda de diamantes para Free Fire💎</p>
+                <p style="color: #9b4b9b; font-size: 20px;">🔥Activos 24/7🔥</p>
+                <div style="margin: 20px 0; padding: 15px; background: linear-gradient(45deg, #4a1c4a, #6a2e6a); border-radius: 10px;">
+                    <p style="color: white; font-size: 16px;">📍Paga En Bolivares✔️</p>
+                </div>
+            </div>
+            
+            <!-- Formulario de Registro -->
+            <form id="registroForm" onsubmit="return validarFormularioCompleto(event)">
+                <h3 style="color: #9b4b9b; margin-bottom: 20px; text-align: center;">📝 REGISTRO NUEVO USUARIO</h3>
+                
+                <!-- Nombre -->
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" class="form-control" id="nombreReal" required 
+                           placeholder="Ej: José Antonio"
+                           oninput="validarYFormatearNombre(this)">
+                    <div id="nombreError" class="validation-error">❌ Solo se permiten letras</div>
+                </div>
+
+                <!-- Apellido -->
+                <div class="form-group">
+                    <label>Apellido</label>
+                    <input type="text" class="form-control" id="apellidoReal" required 
+                           placeholder="Ej: Rodríguez Pérez"
+                           oninput="validarYFormatearApellido(this)">
+                    <div id="apellidoError" class="validation-error">❌ Solo se permiten letras</div>
+                </div>
+
+                <!-- ID Jugador -->
+                <div class="form-group">
+                    <label>ID de Jugador</label>
+                    <input type="text" class="form-control" id="idJugador" required 
+                           placeholder="1234567890"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                           maxlength="15">
+                    <div id="idError" class="validation-error">❌ El ID debe contener solo números</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-bottom: 20px;">
+                    🔥 REGISTRARSE E INGRESAR
+                </button>
+            </form>
+            
+            <!-- Login para usuarios existentes -->
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #4a1c4a;">
+                <h3 style="color: #9b4b9b; margin-bottom: 20px; text-align: center;">🔐 ¿YA TIENES CUENTA?</h3>
+                
+                <div class="form-group">
+                    <label>ID de Jugador</label>
+                    <input type="text" class="form-control" id="loginId" placeholder="Tu ID">
+                </div>
+                
+                <button class="btn btn-primary" onclick="loginExistente()">
+                    🎮 INGRESAR
+                </button>
+                
+                <p style="color: #9b4b9b; font-size: 12px; margin-top: 10px; text-align: center;">
+                    Usa tu ID de jugador para iniciar sesión
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Verificar si ya hay sesión activa
+        window.onload = function() {
+            const sesion = localStorage.getItem('sesionActual');
+            if (sesion) {
+                const usuario = JSON.parse(sesion);
+                if (usuario.esAdmin) {
+                    window.location.href = 'admin.html';
+                } else {
+                    window.location.href = 'catalogo.html';
+                }
+            }
+        };
+        
+        // FUNCIONES DE VALIDACIÓN
+        function validarYFormatearNombre(input) {
+            let valor = input.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '');
+            
+            if (valor.length > 0) {
+                let palabras = valor.toLowerCase().split(' ');
+                for (let i = 0; i < palabras.length; i++) {
+                    if (palabras[i].length > 0) {
+                        palabras[i] = palabras[i].charAt(0).toUpperCase() + palabras[i].slice(1);
+                    }
+                }
+                valor = palabras.join(' ');
+            }
+            
+            input.value = valor;
+            
+            const errorDiv = document.getElementById('nombreError');
+            if (valor.trim() === '') {
+                input.classList.remove('input-valid');
+                input.classList.remove('input-error');
+                errorDiv.classList.remove('show');
+            } else {
+                input.classList.remove('input-error');
+                input.classList.add('input-valid');
+                errorDiv.classList.remove('show');
+            }
+        }
+
+        function validarYFormatearApellido(input) {
+            let valor = input.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '');
+            
+            if (valor.length > 0) {
+                let palabras = valor.toLowerCase().split(' ');
+                for (let i = 0; i < palabras.length; i++) {
+                    if (palabras[i].length > 0) {
+                        palabras[i] = palabras[i].charAt(0).toUpperCase() + palabras[i].slice(1);
+                    }
+                }
+                valor = palabras.join(' ');
+            }
+            
+            input.value = valor;
+            
+            const errorDiv = document.getElementById('apellidoError');
+            if (valor.trim() === '') {
+                input.classList.remove('input-valid');
+                input.classList.remove('input-error');
+                errorDiv.classList.remove('show');
+            } else {
+                input.classList.remove('input-error');
+                input.classList.add('input-valid');
+                errorDiv.classList.remove('show');
+            }
+        }
+
+        function validarFormularioCompleto(event) {
+            event.preventDefault();
+            
+            const nombre = document.getElementById('nombreReal');
+            const apellido = document.getElementById('apellidoReal');
+            const idJugador = document.getElementById('idJugador');
+            
+            let errores = [];
+            
+            validarYFormatearNombre(nombre);
+            validarYFormatearApellido(apellido);
+            
+            if (nombre.value.trim() === '') {
+                errores.push('El nombre es obligatorio');
+            }
+            
+            if (apellido.value.trim() === '') {
+                errores.push('El apellido es obligatorio');
+            }
+            
+            if (idJugador.value.trim() === '') {
+                errores.push('El ID de jugador es obligatorio');
+            } else if (!/^\d+$/.test(idJugador.value)) {
+                errores.push('El ID debe contener solo números');
+            }
+            
+            if (errores.length > 0) {
+                alert('❌ Errores en el formulario:\n\n- ' + errores.join('\n- '));
+                return false;
+            }
+            
+            registrarUsuario(event);
+            return true;
+        }
+    </script>
+</body>
+</html>
